@@ -30,6 +30,9 @@ interface AuthContextType {
     password: string
   ) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
+  loginWithGoogle: (
+    idToken: string
+  ) => Promise<{ success: boolean; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -95,6 +98,29 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const loginWithGoogle = async (idToken: string) => {
+    try {
+      const response = await fetch("/api/auth/google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data.user);
+        router.push("/dashboard");
+        return { success: true };
+      } else {
+        const error = await response.json();
+        return { success: false, error: error.message };
+      }
+    } catch (error) {
+      console.error("Google login error:", error);
+      return { success: false, error: "Google sign-in failed" };
+    }
+  };
+
   const register = async (name: string, email: string, password: string) => {
     try {
       const response = await fetch("/api/auth/register", {
@@ -137,6 +163,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     login,
     register,
     logout,
+    loginWithGoogle,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

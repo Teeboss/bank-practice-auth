@@ -6,7 +6,7 @@ export async function authMiddleware(req: NextRequest) {
   const token = req.cookies.get("token")?.value;
   const pathname = req.nextUrl;
 
-  const protectedRoutes = ["/dashboard", "/profile", "/settings"];
+  const protectedRoutes = ["/dashboard", "/profile", "/settings", "/upload"];
   const autRoutes = ["/login", "/register", "/forgot-password"];
 
   // Check if the request is for a protected route

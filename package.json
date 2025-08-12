@@ -14,8 +14,10 @@
     "formidable": "^3.5.4",
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.2",
+    "mammoth": "^1.10.0",
     "mysql2": "^3.14.3",
     "next": "15.4.5",
+    "pdf-parse": "^1.1.1",
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },
@@ -26,6 +28,7 @@
     "@types/js-cookie": "^3.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
+    "@types/pdf-parse": "^1.1.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
