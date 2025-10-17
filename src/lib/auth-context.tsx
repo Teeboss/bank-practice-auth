@@ -15,6 +15,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  two_factor_enabled?: boolean;
 }
 
 interface AuthContextType {

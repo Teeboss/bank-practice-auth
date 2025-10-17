@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { authenticator } from "otplib";
 import { redirect } from "next/navigation";
 import DB from "./db";
 
@@ -12,6 +13,7 @@ interface User {
   insertId?: number | string;
   provider?: string;
   image?: string;
+  backup_codes?: string | object | undefined;
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-jwt-key";
@@ -159,5 +161,80 @@ export const verifyGoogleToken = async (idToken: string) => {
   } catch (error) {
     console.error("Error verifying Google token:", error);
     return null;
+  }
+};
+
+// 2FA Utilities
+export const generate2FASecret = () => {
+  return authenticator.generateSecret();
+};
+
+interface generateQR {
+  email: string;
+  secret: string;
+  appName: string;
+}
+export const generate2FAQRCode = ({
+  email,
+  secret,
+  appName = "Your App",
+}: generateQR) => {
+  const otpauth = authenticator.keyuri(email, appName, secret);
+  return otpauth;
+};
+
+interface verify2Fa {
+  token: string;
+  secret: string;
+}
+export const verify2FAToken = ({ token, secret }: verify2Fa): boolean => {
+  try {
+    return authenticator.verify({ token, secret });
+  } catch (error) {
+    return false;
+  }
+};
+
+export const generateBackupCodes = () => {
+  const codes = [];
+  for (let i = 0; i < 10; i++) {
+    codes.push(crypto.randomBytes(4).toString("hex").toUpperCase());
+  }
+  return codes;
+};
+
+interface veriBankUpCode {
+  userId: string;
+  code: string;
+}
+export const verifyBackupCode = async ({ userId, code }: veriBankUpCode) => {
+  try {
+    const users = (await DB("SELECT backup_codes FROM users WHERE id = ?", [
+      userId,
+    ])) as User[];
+
+    if (users.length === 0) return false;
+
+    const rawBackupCodes = users[0].backup_codes;
+
+    const backupCodes =
+      typeof rawBackupCodes === "string"
+        ? JSON.parse(rawBackupCodes)
+        : rawBackupCodes || [];
+    const codeIndex = backupCodes.indexOf(code.toUpperCase());
+
+    if (codeIndex === -1) return false;
+
+    // Remove the used backup code
+    backupCodes.splice(codeIndex, 1);
+    await DB("UPDATE users SET backup_codes = ? WHERE id = ?", [
+      JSON.stringify(backupCodes),
+      userId,
+    ]);
+
+    return true;
+  } catch (error) {
+    console.error("Backup code verification error:", error);
+    return false;
   }
 };

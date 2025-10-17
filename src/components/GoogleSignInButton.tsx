@@ -75,7 +75,7 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
         alert("Google sign-in failed. Please try again.");
       }
     } catch (error) {
-      console.error("Google sign-in error:", error);
+      // console.error("Google sign-in error:", error);
       alert("Google sign-in failed. Please try again.");
     } finally {
       setIsLoading(false);
